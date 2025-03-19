@@ -7,6 +7,7 @@ const {
   getCommonWords,
   translateContent,
   getKownWords,
+  updateCurrentPage,
 } = require("./dal");
 const router = express.Router();
 const { getFile } = require("../files/dal");
@@ -93,6 +94,8 @@ router.get("/:book/:page", authRoute, async (req, res) => {
     if (!bookDoc) {
       return res.status(404).json({ error: "Book not found" });
     }
+
+    await updateCurrentPage(book, pageNum);
 
     const pdfBuffer = await getFile(bookDoc.file.path);
     const data = await pdf(pdfBuffer);

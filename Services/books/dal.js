@@ -165,6 +165,19 @@ const getKownWords = async (text, lng, transLng, user_id) => {
   }
 };
 
+const updateCurrentPage = async (bookId, pageNum) => {
+  try {
+    const updatedBook = await Book.findOneAndUpdate(
+      { _id: bookId },
+      { pageNumber: pageNum },
+      { new: true },
+    );
+    return updatedBook;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createBook,
   getBookById,
@@ -173,4 +186,5 @@ module.exports = {
   translateWord,
   translateContent,
   getKownWords,
+  updateCurrentPage,
 };
