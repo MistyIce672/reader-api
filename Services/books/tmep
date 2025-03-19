@@ -1,0 +1,84 @@
+router.get("/:book/:page", authRoute, async (req, res) => {
+  try {
+    console.log("start");
+    const { book, page } = req.params;
+    const pageNum = parseInt(page);
+
+    const bookDoc = await getBookById(book, req.user._id);
+    if (!bookDoc) {
+      return res.status(404).json({ error: "Book not found" });
+    }
+    console.log("book found");
+
+    const pdfBuffer = await getFile(bookDoc.file.path);
+    const data = await pdf(pdfBuffer);
+
+    if (pageNum < 1 || pageNum > data.numpages) {
+      return res.status(400).json({ error: "Invalid page number" });
+    }
+
+    const pageContent = extractPageContent(data, pageNum);
+
+    // Get translations for the entire page content
+    const translations = await translateContent(
+      pageContent,
+      bookDoc.originalLanguage,
+      bookDoc.translatedLanguage,
+    );
+
+    const pageWords = [
+      ...new Set(
+        pageContent
+          .split(" ")
+          .filter((word) => word.trim() !== "")
+          .map((word) => word.toLowerCase()),
+      ),
+    ];
+
+    const knownWords = await getWords(
+      pageWords,
+      bookDoc.originalLanguage,
+      req.user._id,
+    );
+
+    const knownWordsSet = new Set(
+      knownWords.map((word) => word.word.toLowerCase()),
+    );
+
+    const mostCommonWords = findMostCommonWords(
+      pageContent,
+      bookDoc.newWords,
+      knownWordsSet,
+    );
+
+    const commonWordsTranslations = await Promise.all(
+      mostCommonWords.map(async ({ word }) =>
+        translateWord(
+          word,
+          bookDoc.originalLanguage,
+          bookDoc.translatedLanguage,
+        ),
+      ),
+    );
+
+    const mostCommonWordsWithTranslations = mostCommonWords.map(
+      (item, index) => ({
+        word: item.word,
+        translation: commonWordsTranslations[index],
+        frequency: item.frequency,
+      }),
+    );
+
+    res.status(200).json({
+      book: bookDoc.title,
+      page: pageNum,
+      totalPages: data.numpages,
+      content: pageContent,
+      translations,
+      mostCommonWords: mostCommonWordsWithTranslations,
+    });
+  } catch (error) {
+    console.error("Error retrieving book page:", error);
+    res.status(500).json({ error: "Internal Server Error" });
+  }
+});
