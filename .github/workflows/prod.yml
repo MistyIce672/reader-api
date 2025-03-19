@@ -30,22 +30,22 @@ jobs:
           SSH_HOST: ${{ secrets.HOST }}
 
       - name: Check out the source
-        run: ssh staging 'cd prod/sellex/ && git fetch && git reset --hard origin/main'
+        run: ssh staging 'cd prod/reader-api/ && git fetch && git reset --hard origin/main'
 
       - name: Build Front end
         if: ${{ always() }}
-        run: ssh staging 'cd prod/sellex/frontend/ && npm i && npm run build'
+        run: ssh staging 'cd prod/reader-api/frontend/ && npm i && npm run build'
 
-      - name: Build Image
+      - name: Build Image        
         if: ${{ always() }}
-        run: ssh staging 'cd prod/sellex/ && buildah bud -t sellex:latest .'
-
+        run: ssh staging 'cd prod/reader-api/ && buildah bud -t reader-api:latest .'
+      
       - name: Stop the container
-        run: ssh staging 'podman stop sellex'
+        run: ssh staging 'podman stop reader-api'
 
       - name: delete old container
-        run: ssh staging 'podman container rm sellex'
-
+        run: ssh staging 'podman container rm reader-api'
+        
       - name: Start the server
         if: ${{ always() }}
-        run: ssh staging 'podman run -d --restart unless-stopped --name=sellex -p 8080:8080 sellex'
+        run: ssh staging 'podman run -d --restart unless-stopped --name=reader-api -p 4122:4122 reader-api'
