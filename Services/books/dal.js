@@ -178,6 +178,16 @@ const updateCurrentPage = async (bookId, pageNum) => {
   }
 };
 
+const getLanguages = async () => {
+  try {
+    // Get list of supported languages
+    const [languages] = await translate.getLanguages();
+    return languages;
+  } catch (error) {
+    throw error;
+  }
+};
+
 module.exports = {
   createBook,
   getBookById,
@@ -187,4 +197,5 @@ module.exports = {
   translateContent,
   getKownWords,
   updateCurrentPage,
+  getLanguages,
 };
