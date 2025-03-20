@@ -32,6 +32,7 @@ const bookSchema = new mongoose.Schema({
   newWords: {
     type: Number,
     required: true,
+    default: 2,
   },
 });
 

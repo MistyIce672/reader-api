@@ -25,6 +25,7 @@ router.post("/", authRoute, async (req, res) => {
       file: req.body.file,
       originalLanguage: req.body.originalLanguage,
       translatedLanguage: req.body.translatedLanguage,
+      newWords: req.body.newWords,
       user_id: req.user._id,
     };
 
