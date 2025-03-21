@@ -6,7 +6,7 @@ const {
   getAllBooksByUserId,
   getCommonWords,
   translateContent,
-  getKownWords,
+  getKnownWords,
   updateCurrentPage,
 } = require("./dal");
 const router = express.Router();
@@ -118,15 +118,15 @@ router.get("/:book/:page", authRoute, async (req, res) => {
     );
 
     var mostCommonWordsWithTranslations = await getCommonWords(
-      pageContent,
+      translated.join(""),
       bookDoc.originalLanguage,
       bookDoc.translatedLanguage,
       bookDoc.newWords,
       req.user._id,
     );
 
-    const kownWords = await getKownWords(
-      pageContent,
+    const knownWords = await getKnownWords(
+      translated.join(""),
       bookDoc.originalLanguage,
       bookDoc.translatedLanguage,
       req.user._id,
@@ -135,7 +135,7 @@ router.get("/:book/:page", authRoute, async (req, res) => {
     res.status(200).json({
       book: bookDoc.title,
       page: pageNum,
-      knownWords: kownWords,
+      knownWords: knownWords,
       totalPages: data.numpages,
       originalLanguage: bookDoc.originalLanguage,
       translatedLanguage: bookDoc.translatedLanguage,

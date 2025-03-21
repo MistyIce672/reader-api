@@ -25,12 +25,12 @@ router.post("/translation", authRoute, async (req, res) => {
   }
 });
 
-router.get("/:language", authRoute, async (req, res) => {
+router.get("/:language/:translated", authRoute, async (req, res) => {
   try {
-    const { language } = req.params;
+    const { language, translated } = req.params;
     const user_id = req.user._id; // Assuming you have user authentication middleware
 
-    const knownWords = await getAllKnownWords(language, user_id);
+    const knownWords = await getAllKnownWords(language, translated, user_id);
 
     res.status(200).json({
       data: knownWords,
@@ -42,19 +42,26 @@ router.get("/:language", authRoute, async (req, res) => {
 });
 
 // Add new known words
-router.post("/:language", authRoute, async (req, res) => {
+router.post("/", authRoute, async (req, res) => {
   try {
-    const { language } = req.params;
-    const { words } = req.body;
-    const user_id = req.user._id; // Assuming you have user authentication middleware
+    const {
+      originalWord,
+      translatedWord,
+      originalLanguage,
+      translatedLanguage,
+      translate,
+    } = req.body;
 
-    if (!Array.isArray(words)) {
-      return res
-        .status(400)
-        .json({ error: "Words must be provided as an array" });
-    }
+    const user_id = req.user._id;
 
-    const addedWords = await addKnownWords(words, language, user_id);
+    const addedWords = await addKnownWords(
+      originalWord,
+      translatedWord,
+      originalLanguage,
+      translatedLanguage,
+      translate,
+      user_id,
+    );
 
     res.status(201).json({
       message: "Words added successfully",

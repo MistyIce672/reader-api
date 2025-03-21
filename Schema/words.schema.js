@@ -6,11 +6,23 @@ const wordSchema = new mongoose.Schema({
     required: true,
     ref: "accounts",
   },
-  language: {
+  originalLanguage: {
     type: String,
     required: true,
   },
-  word: {
+  translate: {
+    type: Boolean,
+    required: true,
+  },
+  originalWord: {
+    type: String,
+    required: true,
+  },
+  translatedLanguage: {
+    type: String,
+    required: true,
+  },
+  translatedWord: {
     type: String,
     required: true,
   },

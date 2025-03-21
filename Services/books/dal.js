@@ -1,6 +1,6 @@
 const { models } = require("mongoose");
 const { Book } = require("../../Schema");
-const { getWords } = require("../words/dal");
+const { getWords, getWordsTranslated } = require("../words/dal");
 const { Translate } = require("@google-cloud/translate").v2;
 
 const findMostCommonWords = (pageContent, numWords, knownWordsSet) => {
@@ -108,17 +108,16 @@ const getCommonWords = async (text, lng, transLng, newWords, user_id) => {
       ),
     ];
 
-    const knownWords = await getWords(words, lng, user_id);
+    const knownWords = await getWordsTranslated(words, lng, transLng, user_id);
 
     const knownWordsSet = new Set(
-      knownWords.map((item) => item.word.toLowerCase()),
+      knownWords.map((item) => item.translatedWord.toLowerCase()),
     );
-
     const mostCommonWords = findMostCommonWords(text, newWords, knownWordsSet);
 
     const commonWordsTranslations = await Promise.all(
       mostCommonWords.map(async ({ word }) =>
-        translateWord(word, lng, transLng),
+        translateWord(word, transLng, lng),
       ),
     );
 
@@ -126,8 +125,8 @@ const getCommonWords = async (text, lng, transLng, newWords, user_id) => {
       (item, index) => ({
         word: item.word,
         translation: commonWordsTranslations[index],
-        originalLanguage: lng,
-        translatedLanguage: transLng,
+        originalLanguage: transLng,
+        translatedLanguage: lng,
         frequency: item.frequency,
       }),
     );
@@ -138,7 +137,7 @@ const getCommonWords = async (text, lng, transLng, newWords, user_id) => {
   }
 };
 
-const getKownWords = async (text, lng, transLng, user_id) => {
+const getKnownWords = async (text, lng, transLng, user_id) => {
   try {
     const words = [
       ...new Set(
@@ -148,18 +147,15 @@ const getKownWords = async (text, lng, transLng, user_id) => {
           .map((word) => word.toLowerCase()),
       ),
     ];
-    const knownWords = await getWords(words, lng, user_id);
-
-    const knownWordsWithTranslations = await Promise.all(
-      knownWords.map(async (wordObj) => {
-        const translation = await translateWord(wordObj.word, lng, transLng); // Assuming 'uk' as default target language
-        return {
-          ...wordObj.toObject(),
-          translation,
-        };
-      }),
+    const knownWords = await getWordsTranslated(
+      words,
+      lng,
+      transLng,
+      user_id,
+      true,
     );
-    return knownWordsWithTranslations;
+
+    return knownWords;
   } catch (error) {
     throw error;
   }
@@ -195,7 +191,7 @@ module.exports = {
   getCommonWords,
   translateWord,
   translateContent,
-  getKownWords,
+  getKnownWords,
   updateCurrentPage,
   getLanguages,
 };

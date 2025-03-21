@@ -1,21 +1,68 @@
 const { Word } = require("../../Schema");
 
-const getWords = async (wordList, language, user_id) => {
+const getWords = async (
+  wordList,
+  language,
+  translatedLanguage,
+  user_id,
+  translate = null,
+) => {
   try {
-    const matchingWords = await Word.find({
-      word: { $in: wordList },
-      language: language,
+    const query = {
+      originalWord: { $in: wordList },
+      originalLanguage: language,
+      translatedLanguage: translatedLanguage,
       user_id: user_id,
-    });
+    };
+
+    // Only add translate field if it's not null
+    if (translate !== null) {
+      query.translate = translate;
+    }
+
+    const matchingWords = await Word.find(query);
     return matchingWords;
   } catch (error) {
     throw error;
   }
 };
-const getAllKnownWords = async (language, user_id) => {
+
+const getWordsTranslated = async (
+  wordList,
+  language,
+  translatedLanguage,
+  user_id,
+  translate = null,
+) => {
+  try {
+    const query = {
+      translatedWord: { $in: wordList },
+      originalLanguage: language,
+      translatedLanguage: translatedLanguage,
+      user_id: user_id,
+    };
+
+    // Only add translate field if it's not null
+    if (translate !== null) {
+      query.translate = translate;
+    }
+
+    const matchingWords = await Word.find(query);
+    return matchingWords;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const getAllKnownWords = async (
+  originalLanguage,
+  translatedLanguage,
+  user_id,
+) => {
   try {
     const words = await Word.find({
-      language: language,
+      originalLanguage: originalLanguage,
+      translatedLanguage: translatedLanguage,
       user_id: user_id,
     });
     return words;
@@ -25,15 +72,27 @@ const getAllKnownWords = async (language, user_id) => {
 };
 
 // Add addKnownWords function
-const addKnownWords = async (wordList, language, user_id) => {
+const addKnownWords = async (
+  originalWord,
+  translatedWord,
+  originalLanguage,
+  translatedLanguage,
+  translate,
+  user_id,
+) => {
   try {
-    const wordsToInsert = wordList.map((word) => ({
-      word,
-      language,
+    // Create a new word document
+    const newWord = new Word({
       user_id,
-    }));
+      originalLanguage,
+      translatedLanguage,
+      originalWord,
+      translatedWord,
+      translate, // Assuming all words added this way should be translated
+    });
 
-    const result = await Word.insertMany(wordsToInsert);
+    // Save the word to the database
+    const result = await newWord.save();
     return result;
   } catch (error) {
     throw error;
@@ -44,4 +103,5 @@ module.exports = {
   getWords,
   getAllKnownWords,
   addKnownWords,
+  getWordsTranslated,
 };
