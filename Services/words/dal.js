@@ -99,9 +99,40 @@ const addKnownWords = async (
   }
 };
 
+const deleteWord = async (wordId, user_id) => {
+  try {
+    const result = await Word.findOneAndDelete({
+      _id: wordId,
+      user_id: user_id,
+    });
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+const updateWordTranslate = async (wordId, user_id, translate) => {
+  try {
+    const result = await Word.findOneAndUpdate(
+      {
+        _id: wordId,
+        user_id: user_id,
+      },
+      { translate: translate },
+      { new: true }, // Returns the updated document
+    );
+    return result;
+  } catch (error) {
+    throw error;
+  }
+};
+
+// Don't forget to add these to the exports
 module.exports = {
   getWords,
   getAllKnownWords,
   addKnownWords,
   getWordsTranslated,
+  deleteWord, // Add this
+  updateWordTranslate, // Add this
 };
