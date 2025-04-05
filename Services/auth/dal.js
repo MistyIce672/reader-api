@@ -5,42 +5,9 @@ const { Account } = require("../../Schema");
 require("dotenv").config();
 const jwtSecretKey = process.env.SECRET_KEY;
 
-// Function to generate random 6-digit code
-function generatePairingCode() {
-  return Math.floor(100000 + Math.random() * 900000).toString();
-}
-
-// Function to check if pairing code already exists
-async function isPairingCodeUnique(code) {
-  const existingAccount = await Account.findOne({ pairingCode: code });
-  return !existingAccount;
-}
-
-// Generate unique pairing code
-async function getUniquePairingCode() {
-  let pairingCode;
-  let isUnique = false;
-
-  while (!isUnique) {
-    pairingCode = generatePairingCode();
-    isUnique = await isPairingCodeUnique(pairingCode);
-  }
-
-  return pairingCode;
-}
-
 async function createAccount(accountData) {
   try {
-    // Generate unique pairing code
-    const pairingCode = await getUniquePairingCode();
-
-    // Add pairing code to account data
-    const accountWithPairingCode = {
-      ...accountData,
-      pairingCode,
-    };
-
-    const newAccount = new Account(accountWithPairingCode);
+    const newAccount = new Account(accountData);
     const savedAccount = await newAccount.save();
 
     return savedAccount;

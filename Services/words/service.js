@@ -6,7 +6,7 @@ const {
   updateWordTranslate,
   deleteWord,
 } = require("./dal");
-const { translateWord } = require("../books/dal");
+const { translateWord } = require("../translation/dal");
 const router = express.Router();
 
 router.post("/translation", authRoute, async (req, res) => {
@@ -14,17 +14,24 @@ router.post("/translation", authRoute, async (req, res) => {
     const originalWord = req.body.word;
     const originalLanguage = req.body.originalLanguage;
     const translatedLanguage = req.body.translatedLanguage;
+    const userId = req.user._id;
 
     const word = await translateWord(
       originalWord,
       originalLanguage,
       translatedLanguage,
+      userId,
     );
 
     res.status(200).json({
       word,
     });
   } catch (error) {
+    if (error.message === "Insufficient points") {
+      return res.status(403).json({
+        error: "Insufficient points for translation",
+      });
+    }
     console.error("Error getting known words:", error);
     res.status(500).json({ error: "Internal Server Error" });
   }

@@ -5,13 +5,13 @@ const {
   getBookById,
   getAllBooksByUserId,
   getCommonWords,
-  translateContent,
   getKnownWords,
   updateCurrentPage,
 } = require("./dal");
 const router = express.Router();
 const { getFile } = require("../files/dal");
 const pdf = require("pdf-parse");
+const { translateContent } = require("../translation/dal");
 
 const extractPageContent = (pdfData, pageNum) => {
   const pages = pdfData.text.split("\n\n");
@@ -111,6 +111,7 @@ router.get("/:book/:page", authRoute, async (req, res) => {
       pageContent,
       bookDoc.originalLanguage,
       bookDoc.translatedLanguage,
+      req.user._id, // Add user ID
     );
 
     const translated = translations.map(

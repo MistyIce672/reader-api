@@ -13,6 +13,7 @@ async function authRoute(req, res, next) {
     if (!authHeader) {
       return res.status(401).json({ error: "invalid auth token" });
     }
+    console.log(user);
     req.user = user;
 
     next();

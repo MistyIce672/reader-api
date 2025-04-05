@@ -16,10 +16,10 @@ const accountSchema = new mongoose.Schema({
     required: true,
     unique: true,
   },
-  pairingCode: {
-    type: String,
+  points: {
+    type: Number,
     required: true,
-    unique: true,
+    default: 10000,
   },
   wall_id: {
     type: mongoose.Schema.Types.ObjectId,

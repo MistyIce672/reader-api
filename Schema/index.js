@@ -3,6 +3,7 @@ const accountSchema = require("./accounts.schema");
 const bookSchema = require("./books.schema");
 const fileSchema = require("./file.schema");
 const wordSchema = require("./words.schema");
+require("dotenv").config();
 
 const mongoToken = process.env.mongodb;
 const connection = mongoose.createConnection(mongoToken);

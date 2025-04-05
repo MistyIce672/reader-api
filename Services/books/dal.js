@@ -1,7 +1,7 @@
 const { models } = require("mongoose");
 const { Book } = require("../../Schema");
 const { getWords, getWordsTranslated } = require("../words/dal");
-const { Translate } = require("@google-cloud/translate").v2;
+const { translateWord } = require("../translation/dal");
 
 const findMostCommonWords = (pageContent, numWords, knownWordsSet) => {
   const words = pageContent
@@ -25,45 +25,6 @@ const findMostCommonWords = (pageContent, numWords, knownWordsSet) => {
     }));
 
   return sortedWords;
-};
-
-const translate = new Translate({
-  projectId: "translater-453918",
-  keyFilename: "token.json",
-});
-
-const translateWord = async (word, originalLanguage, translatedLanguage) => {
-  const [translation] = await translate.translate(word, {
-    from: originalLanguage,
-    to: translatedLanguage,
-  });
-  return translation;
-};
-
-const translateContent = async (
-  content,
-  originalLanguage,
-  translatedLanguage,
-) => {
-  const sentences = content.split(".").filter((sentence) => sentence.trim());
-
-  const translations = await Promise.all(
-    sentences.map(async (sentence) => {
-      if (!sentence.trim()) return null;
-
-      const [translation] = await translate.translate(sentence.trim(), {
-        from: originalLanguage,
-        to: translatedLanguage,
-      });
-
-      return {
-        original: sentence.trim(),
-        translated: translation,
-      };
-    }),
-  );
-
-  return translations.filter((t) => t !== null);
 };
 
 const createBook = async (bookData) => {
@@ -117,7 +78,7 @@ const getCommonWords = async (text, lng, transLng, newWords, user_id) => {
 
     const commonWordsTranslations = await Promise.all(
       mostCommonWords.map(async ({ word }) =>
-        translateWord(word, transLng, lng),
+        translateWord(word, transLng, lng, user_id),
       ),
     );
 
@@ -189,8 +150,6 @@ module.exports = {
   getBookById,
   getAllBooksByUserId,
   getCommonWords,
-  translateWord,
-  translateContent,
   getKnownWords,
   updateCurrentPage,
   getLanguages,
